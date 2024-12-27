@@ -28,11 +28,12 @@ jobs:
       matrix:
         sdk:
           - 23.05.3
+         # - snapshot
         arch:
           - x86_64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
         with:
           fetch-depth: 0
 
@@ -40,12 +41,17 @@ jobs:
         run: |
           sudo rm -rf /usr/lib/{jvm,llvm} /usr/local /usr/src/* /var/lib/gems /var/lib/mysql /var/lib/snapd /etc/skel /opt/{microsoft,az,hostedtoolcache,cni,mssql-tools,pipx} /usr/share/{az*,dotnet,swift,miniconda,gradle*,java,kotlinc,ri,sbt} /root/{.sbt,.local,.npm} /usr/libexec/gcc/x86_64-linux-gnu/14 /usr/lib/x86_64-linux-gnu/{*clang*,*LLVM*} /home/linuxbrew
           
+      - name: Get v2ray-geodata
+        run: |
+          git clone https://github.com/sbwml/luci-theme-argon
+          
       - name: Build
         uses: sbwml/openwrt-gh-action-sdk@helloworld
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
-          PACKAGES: ${{ github.event.inputs.namapaket }}
+         # PACKAGES: ${{ github.event.inputs.namapaket }}
+          PACKAGES: luci-app-argon-config
           NO_REFRESH_CHECK: true
          
       - name: Store packages
@@ -54,11 +60,17 @@ jobs:
           name: ${{ matrix.arch }}-${{ matrix.sdk }}
           path: bin
           
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.tag }}-${{ matrix.arch }}
+          path: bin/packages/${{ matrix.arch }}/packages_ci/*.ipk
+
+      
       - name: Prepare for Push
         run: |
           mkdir -p x86_v23
           cp bin/packages/${{ matrix.arch }}/packages_ci/*.ipk x86_v23/
-
       - name: Push Artifacts to paket_o Repository
         run: |
           git clone https://github.com/${{ github.repository_owner }}/paket_o target_repo
@@ -71,4 +83,11 @@ jobs:
           git commit -m "Update autocore .ipk packages for ${{ matrix.arch }}"
           git push origin x86_v23 --force
         env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          retain_days: 1
+          keep_minimum_runs: 0
+
