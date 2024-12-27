@@ -45,6 +45,8 @@ jobs:
         run: |
           git clone --depth 1 --branch main https://github.com/asvow/luci-app-tailscale.git luci-app-tailscale
           git clone https://github.com/sbwml/luci-theme-argon
+          git clone --depth 1 --branch master https://github.com/gSpotx2f/luci-app-internet-detector
+        
           
       - name: Build
         uses: sbwml/openwrt-gh-action-sdk@helloworld
@@ -52,7 +54,7 @@ jobs:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
          # PACKAGES: ${{ github.event.inputs.namapaket }}
-          PACKAGES: luci-app-argon-config luci-app-tailscale
+          PACKAGES: luci-app-argon-config luci-app-tailscale luci-app-internet-detector
           NO_REFRESH_CHECK: true
          
       - name: Store packages
