@@ -37,15 +37,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/lib/{jvm,llvm} /usr/local /usr/src/* /var/lib/gems /var/lib/mysql /var/lib/snapd /etc/skel /opt/{microsoft,az,hostedtoolcache,cni,mssql-tools,pipx} /usr/share/{az*,dotnet,swift,miniconda,gradle*,java,kotlinc,ri,sbt} /root/{.sbt,.local,.npm} /usr/libexec/gcc/x86_64-linux-gnu/14 /usr/lib/x86_64-linux-gnu/{*clang*,*LLVM*} /home/linuxbrew
+#      - name: Free disk space
+#        run: |
+#          sudo rm -rf /usr/lib/{jvm,llvm} /usr/local /usr/src/* /var/lib/gems /var/lib/mysql /var/lib/snapd /etc/skel /opt/{microsoft,az,hostedtoolcache,cni,mssql-tools,pipx} /usr/share/{az*,dotnet,swift,miniconda,gradle*,java,kotlinc,ri,sbt} /root/{.sbt,.local,.npm} /usr/libexec/gcc/x86_64-linux-gnu/14 /usr/lib/x86_64-linux-gnu/{*clang*,*LLVM*} /home/linuxbrew
           
       - name: Get v2ray-geodata
         run: |
           git clone --depth 1 --branch main https://github.com/asvow/luci-app-tailscale.git luci-app-tailscale
           git clone https://github.com/sbwml/luci-theme-argon
           git clone --depth 1 --branch master https://github.com/gSpotx2f/luci-app-internet-detector
+          git clone --depth 1 --branch main https://github.com/zero2black/luci-app-tinyfilemanager
         
           
       - name: Build
@@ -54,7 +55,8 @@ jobs:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
          # PACKAGES: ${{ github.event.inputs.namapaket }}
-          PACKAGES: luci-app-argon-config luci-app-tailscale luci-app-internet-detector
+         # PACKAGES: luci-app-argon-config luci-app-tailscale luci-app-internet-detector
+          PACKAGES: luci-app-tinyfilemanager
           NO_REFRESH_CHECK: true
          
       - name: Store packages
