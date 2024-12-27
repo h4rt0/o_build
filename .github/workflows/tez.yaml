@@ -42,12 +42,17 @@ jobs:
           sudo rm -rf /usr/lib/{jvm,llvm} /usr/local /usr/src/* /var/lib/gems /var/lib/mysql /var/lib/snapd /etc/skel /opt/{microsoft,az,hostedtoolcache,cni,mssql-tools,pipx} /usr/share/{az*,dotnet,swift,miniconda,gradle*,java,kotlinc,ri,sbt} /root/{.sbt,.local,.npm} /usr/libexec/gcc/x86_64-linux-gnu/14 /usr/lib/x86_64-linux-gnu/{*clang*,*LLVM*} /home/linuxbrew
           
 
+      - name: Get v2ray-geodata
+        run: |
+          git clone https://github.com/sbwml/luci-theme-argon
+          
       - name: Build
         uses: sbwml/openwrt-gh-action-sdk@helloworld
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
-          PACKAGES: ${{ github.event.inputs.namapaket }}
+         # PACKAGES: ${{ github.event.inputs.namapaket }}
+          PACKAGES: luci-app-argon-config
           NO_REFRESH_CHECK: true
          
       - name: Store packages
