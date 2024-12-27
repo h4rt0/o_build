@@ -1,0 +1,118 @@
+name: Build luci-ipk
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev gawk git ccache gettext libssl-dev xsltproc wget unzip python3 zstd
+
+   
+    - name: Setup Environment Variables
+      run: |
+         export TZ=Asia/Jakarta
+         echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
+          
+    - name: Download OpenWrt SDK
+      run: |
+        wget https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+        tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+        mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk
+        
+    - name: Update and install feeds
+      run: |
+        cd openwrt-sdk
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Clone sbwml/luci-theme-argon
+      run: |
+        cd openwrt-sdk/package
+        git clone --depth 1 --branch master https://github.com/gSpotx2f/luci-app-internet-detector.git temp_internet
+        
+        cp -r temp_internet/* ./
+        rm -rf temp_internet
+        
+        ls
+
+    - name: Clone Source
+      run: |
+        cd openwrt-sdk/package
+        git clone --depth 1 --branch main https://github.com/sbwml/luci-theme-argon.git luci-theme-argon
+        git clone https://github.com/sbwml/autocore-arm autocore-arm
+        git clone --depth 1 --branch main https://github.com/asvow/luci-app-tailscale.git luci-app-tailscale
+        
+    
+
+        
+    - name: Configure build
+      run: |
+        cd openwrt-sdk
+        make defconfig
+        # Select the package LuCI -> Applications -> luci-app-tinyfilemanager
+        echo "CONFIG_ALL_NONSHARED=n" > .config
+        echo "CONFIG_ALL_KMODS=n" >> .config
+        echo "CONFIG_ALL=n" >> .config
+        echo "CONFIG_AUTOREMOVE=n" >> .config
+        echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
+        echo "CONFIG_PACKAGE_luci-app-argon-config=y" >> .config
+        echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
+        echo "CONFIG_PACKAGE_autocore-x86=y" >> .config
+        echo "CONFIG_PACKAGE_luci-app-tailscale=y" >> .config
+        echo "CONFIG_PACKAGE_internet-detector-mod-email=y" >> .config
+        echo "CONFIG_PACKAGE_internet-detector-mod-modem-restart=y" >> .config
+        echo "CONFIG_PACKAGE_luci-app-internet-detector=y" >> .config
+      
+        make defconfig
+
+    - name: Compile luci
+      run: |
+        cd openwrt-sdk
+        make package/internet-detector-mod-modem-restart/compile V=s -j10
+        make package/internet-detector-mod-email/compile V=s -j10
+        make package/luci-app-internet-detector/compile V=s -j10 
+        make package/luci-theme-argon/compile V=s -j10
+        make package/luci-app-argon-config/compile V=s -j10
+        make package/autocore-arm/compile V=s -j10
+        make package/luci-app-tailscale/compile V=s -j10
+        
+
+    - name: List compiled files
+      run: |
+        cd openwrt-sdk
+        find bin -name "*.ipk"
+
+    - name: Upload IPK package
+      uses: actions/upload-artifact@v4
+      with:
+        name: luci-theme-argon
+        path: |
+          openwrt-sdk/bin/packages/**/luci-theme-argon*.ipk
+
+    - name: Zip packages
+      run: |
+        echo -e "testing" >> release.txt
+
+    - name: Upload packages
+      uses: ncipollo/release-action@main
+      with:
+        token: ${{ secrets.RELEASES_TOKEN }}
+        artifacts: |
+            openwrt-sdk/bin/packages/**/luci-theme-argon*
+            openwrt-sdk/bin/packages/**/luci-app-argon-config*
+            openwrt-sdk/bin/packages/**/luci-app-tailscale*
+            openwrt-sdk/bin/packages/**/*detector*.ipk
+            openwrt-sdk/bin/targets/x86/64/packages/autocore-x86*
+        allowUpdates: true
+        replacesArtifacts: true
+        bodyFile: "release.txt"
+        tag: x86_ipk
