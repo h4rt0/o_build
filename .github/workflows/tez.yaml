@@ -43,6 +43,7 @@ jobs:
           
       - name: Get v2ray-geodata
         run: |
+          git clone --depth 1 --branch main https://github.com/asvow/luci-app-tailscale.git luci-app-tailscale
           git clone https://github.com/sbwml/luci-theme-argon
           
       - name: Build
@@ -51,7 +52,7 @@ jobs:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
          # PACKAGES: ${{ github.event.inputs.namapaket }}
-          PACKAGES: luci-app-argon-config
+          PACKAGES: luci-app-argon-config luci-app-tailscale
           NO_REFRESH_CHECK: true
          
       - name: Store packages
