@@ -71,6 +71,7 @@ jobs:
         run: |
           mkdir -p x86_v23
           cp bin/packages/${{ matrix.arch }}/packages_ci/*.ipk x86_v23/
+          
       - name: Push Artifacts to paket_o Repository
         run: |
           git clone https://github.com/${{ github.repository_owner }}/paket_o target_repo
@@ -81,9 +82,9 @@ jobs:
           cp -r ../x86_v23/* .
           git add .
           git commit -m "Update autocore .ipk packages for ${{ matrix.arch }}"
-          git push origin x86_v23 --force
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository_owner }}/paket_o.git x86_v23 --force
         env:
-          TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@main
