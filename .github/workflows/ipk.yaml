@@ -105,7 +105,7 @@ jobs:
     - name: Upload packages
       uses: ncipollo/release-action@main
       with:
-        token: ${{ secrets.RELEASES_TOKEN }}
+        token: ${{ secrets.GH_TOKEN }}
         artifacts: |
             openwrt-sdk/bin/packages/**/luci-theme-argon*
             openwrt-sdk/bin/packages/**/luci-app-argon-config*
