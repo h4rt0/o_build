@@ -1,0 +1,90 @@
+name: Build luci-tiny
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libncurses5-dev pkg-config zlib1g-dev gawk git ccache gettext libssl-dev libxml2-dev xsltproc wget unzip python3 zstd
+
+   
+    - name: Setup Environment Variables
+      run: |
+         export TZ=Asia/Jakarta
+         echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
+          
+    - name: Download OpenWrt SDK
+      run: |
+        wget https://archive.openwrt.org/releases/21.02.3/targets/x86/64/openwrt-sdk-21.02.3-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
+        tar xf openwrt-sdk-21.02.3-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
+        mv openwrt-sdk-21.02.3-x86-64_gcc-8.4.0_musl.Linux-x86_64 openwrt-sdk
+        
+    - name: Update and install feeds
+      run: |
+        cd openwrt-sdk
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Clone Source
+      run: |
+        cd openwrt-sdk/package
+        
+        git clone --depth 1 --branch main https://github.com/zero2black/luci-app-tinyfilemanager.git luci-app-tinyfilemanager
+
+    - name: Configure build
+      run: |
+        cd openwrt-sdk
+        make defconfig
+        # Select the package LuCI -> Applications -> luci-app-tinyfilemanager
+        # echo "CONFIG_ALL_NONSHARED=n" > .config
+        # echo "CONFIG_ALL_KMODS=n" >> .config
+        # echo "CONFIG_ALL=n" >> .config
+        # echo "CONFIG_AUTOREMOVE=n" >> .config
+        # echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
+        
+        echo "CONFIG_PACKAGE_luci-app-tinyfilemanager=y" >> .config
+        make defconfig
+
+    - name: Compile luci-theme-argon
+      run: |
+        cd openwrt-sdk
+       
+        make package/luci-app-tinyfilemanager/compile V=99
+
+    - name: List compiled files
+      run: |
+        cd openwrt-sdk
+        find bin -name "*.ipk"
+
+    - name: Upload IPK package
+      uses: actions/upload-artifact@v4
+      with:
+        name: luci-theme-argon
+        path: |
+          openwrt-sdk/bin/packages/**/luci-theme-argon*.ipk
+
+    - name: Zip packages
+      run: |
+        echo -e "testing" >> release.txt
+
+    - name: Upload packages
+      uses: ncipollo/release-action@main
+      with:
+        token: ${{ secrets.RELEASES_TOKEN }}
+        artifacts: |
+            openwrt-sdk/bin/packages/**/luci-app-tinyfilemanager*
+            
+        allowUpdates: true
+        replacesArtifacts: true
+        bodyFile: "release.txt"
+        tag: x86_ipk
