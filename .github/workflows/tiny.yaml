@@ -71,7 +71,8 @@ jobs:
       with:
         name: luci-theme-argon
         path: |
-          openwrt-sdk/bin/packages/**/luci-theme-argon*.ipk
+          openwrt-sdk/bin/packages/x86_64/base/*.ipk
+          
 
     - name: Zip packages
       run: |
@@ -80,7 +81,7 @@ jobs:
     - name: Upload packages
       uses: ncipollo/release-action@main
       with:
-        token: ${{ secrets.RELEASES_TOKEN }}
+        token: ${{ secrets.GH_TOKEN }}
         artifacts: |
             openwrt-sdk/bin/packages/**/luci-app-tinyfilemanager*
             
