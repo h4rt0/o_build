@@ -2,6 +2,8 @@ name: Build luci-ipk
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # This cron expression means "at 00:00 UTC every day"
   
 jobs:
   build:
