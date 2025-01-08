@@ -39,7 +39,7 @@ jobs:
       run: |
         cd openwrt-sdk/package
         
-        git clone --depth 1 --branch main https://github.com/h4rt0/python-dotmap.git python-dotmap
+        git clone --depth 1 --branch main https://github.com/h4rt0/python-telegram-bot.git python-telegram-bot
 
     - name: Configure build
       run: |
@@ -52,14 +52,14 @@ jobs:
         echo "CONFIG_AUTOREMOVE=n" >> .config
         echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
         
-        echo "CONFIG_PACKAGE_python-dotmap=y" >> .config
+        echo "CONFIG_PACKAGE_python-telegram-bot=y" >> .config
         make defconfig
 
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
        
-        make package/python-dotmap/compile V=99
+        make package/python-telegram-bot/compile V=99
 
     - name: List compiled files
       run: |
