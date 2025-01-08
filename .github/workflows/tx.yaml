@@ -38,8 +38,7 @@ jobs:
     - name: Clone Source
       run: |
         cd openwrt-sdk/package
-        
-        git clone --depth 1 --branch main https://github.com/h4rt0/python-telegram-bot.git python-telegram-bot
+        git clone https://github.com/sbwml/autocore-arm autocore-arm
 
     - name: Configure build
       run: |
@@ -51,15 +50,14 @@ jobs:
         # echo "CONFIG_ALL=n" >> .config
         echo "CONFIG_AUTOREMOVE=n" >> .config
         echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
-        
-        echo "CONFIG_PACKAGE_python-telegram-bot=y" >> .config
+        echo "CONFIG_PACKAGE_python3-packages=y" >> .config
+        echo "CONFIG_PACKAGE_python3-packages-list="python-telegram-bot  >> .config
         make defconfig
 
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
-        make package/python-telegram-bot/clean
-        make package/python-telegram-bot/compile V=99
+        make package/autocore-arm/compile V=s -j10
 
     - name: List compiled files
       run: |
