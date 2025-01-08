@@ -58,7 +58,7 @@ jobs:
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
-       
+        make package/python-telegram-bot/clean
         make package/python-telegram-bot/compile V=99
 
     - name: List compiled files
