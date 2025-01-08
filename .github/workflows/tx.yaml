@@ -52,13 +52,13 @@ jobs:
         # echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
         echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
         echo "CONFIG_PACKAGE_python3-packages=y" >> .config
-        echo "CONFIG_PACKAGE_python3-packages-list"python-telegram-bot  >> .config
+        echo "CONFIG_PACKAGE_python3-packages-list="python-telegram-bot  >> .config
   
 
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
-        make package/feeds/packages/python3-packages/compile V=s -j10
+        make feeds/packages/lang/python/python3-packages/compile V=s -j10
 
     - name: List compiled files
       run: |
