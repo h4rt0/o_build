@@ -45,13 +45,13 @@ jobs:
         cd openwrt-sdk
         make defconfig
         # Select the package LuCI -> Applications -> luci-app-tinyfilemanager
-        echo "CONFIG_ALL_NONSHARED=n" > .config
-        echo "CONFIG_ALL_KMODS=n" >> .config
+        # echo "CONFIG_ALL_NONSHARED=n" > .config
+        # echo "CONFIG_ALL_KMODS=n" >> .config
         # echo "CONFIG_ALL=n" >> .config
-        echo "CONFIG_AUTOREMOVE=n" >> .config
-        echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
+        # echo "CONFIG_AUTOREMOVE=n" >> .config
+        # echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
         echo "CONFIG_PACKAGE_python3-packages=y" >> .config
-        echo "CONFIG_PACKAGE_python3-packages-list="python-telegram-bot  >> .config
+        echo "CONFIG_PACKAGE_python3-packages-list-host="python-telegram-bot  >> .config
         make defconfig
 
     - name: Compile python-dotmap
