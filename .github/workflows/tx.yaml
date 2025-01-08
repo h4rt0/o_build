@@ -38,7 +38,7 @@ jobs:
     - name: Clone Source
       run: |
         cd openwrt-sdk/package
-        git clone https://github.com/sbwml/autocore-arm autocore-arm
+        git clone --depth 1 --branch main https://github.com/sbwml/luci-theme-argon.git luci-theme-argon
 
     - name: Configure build
       run: |
@@ -50,6 +50,7 @@ jobs:
         # echo "CONFIG_ALL=n" >> .config
         # echo "CONFIG_AUTOREMOVE=n" >> .config
         # echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
+        echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
         echo "CONFIG_PACKAGE_python3-packages=y" >> .config
         echo "CONFIG_PACKAGE_python3-packages-list-host="python-telegram-bot  >> .config
         make defconfig
@@ -57,7 +58,7 @@ jobs:
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
-        make package/autocore-arm/compile V=s -j10
+        make package/luci-theme-argon/compile V=s -j10
 
     - name: List compiled files
       run: |
