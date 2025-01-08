@@ -83,7 +83,7 @@ jobs:
       with:
         token: ${{ secrets.GH_TOKEN }}
         artifacts: |
-            openwrt-sdk/bin/packages/**/luci-app-tinyfilemanager*
+            openwrt-sdk/bin/packages/**/python3-packages*
             
         allowUpdates: true
         replacesArtifacts: true
