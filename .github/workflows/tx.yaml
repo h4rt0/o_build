@@ -57,6 +57,11 @@ jobs:
         ls
         make package/feeds/packages/python3-packages/compile  V=s -j10
 
+    - name: Rename IPK package
+      run: |
+        cd openwrt-sdk/bin/packages/x86_64/packages
+        mv python3-packages_1.0-2_x86_64.ipk python-telegram-bot_${{ env.PYTHON_TELEGRAM_BOT_VERSION }}_x86_64.ipk
+
     - name: List compiled files
       run: |
         cd openwrt-sdk
@@ -67,7 +72,7 @@ jobs:
       with:
         name: luci-theme-argon
         path: |
-          openwrt-sdk/bin/packages/x86_64/base/*.ipk
+          openwrt-sdk/bin/packages/x86_64/packages/python-telegram-bot_${{ env.PYTHON_TELEGRAM_BOT_VERSION }}_x86_64.ipk
 
     - name: Zip packages
       run: |
@@ -78,7 +83,7 @@ jobs:
       with:
         token: ${{ secrets.GH_TOKEN }}
         artifacts: |
-            openwrt-sdk/bin/packages/**/python3-packages*
+            openwrt-sdk/bin/packages/**/python-telegram-bot_${{ env.PYTHON_TELEGRAM_BOT_VERSION }}_x86_64.ipk
         allowUpdates: true
         replacesArtifacts: true
         bodyFile: "release.txt"
