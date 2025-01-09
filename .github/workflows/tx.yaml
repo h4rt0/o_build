@@ -52,7 +52,8 @@ jobs:
     - name: Update PKG_VERSION in Makefile
       run: |
         cd openwrt-sdk
-        sed -i 's/PKG_VERSION:=1.1/PKG_VERSION:=${{ env.PYTHON_TELEGRAM_BOT_VERSION }}/' openwrt-sdk/package/feeds/packages/python3-packages/Makefile
+        ls
+        sed -i 's/PKG_VERSION:=1.1/PKG_VERSION:=${{ env.PYTHON_TELEGRAM_BOT_VERSION }}/' openwrt-sdk/feeds/lang/python/python3-packages/Makefile
 
     - name: Compile python-dotmap
       run: |
