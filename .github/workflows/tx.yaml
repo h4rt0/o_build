@@ -3,7 +3,6 @@ name: Build lucitz
 on:
   workflow_dispatch:
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,44 +16,40 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential libncurses5-dev pkg-config zlib1g-dev gawk git ccache gettext libssl-dev libxml2-dev xsltproc wget unzip python3 zstd
 
-   
+    - name: Get latest python-telegram-bot version
+      run: |
+        LATEST_VERSION=$(pip index versions python-telegram-bot | grep -oP '(?<=python-telegram-bot )[\d.]+(?=\s)' | head -n 1)
+        echo "PYTHON_TELEGRAM_BOT_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+
     - name: Setup Environment Variables
       run: |
-         export TZ=Asia/Jakarta
-         echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
-          
+        export TZ=Asia/Jakarta
+        echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
+
     - name: Download OpenWrt SDK
       run: |
         wget https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
         tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
         mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk
-        
+
     - name: Update and install feeds
       run: |
         cd openwrt-sdk
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
-    - name: Clone Source
-      run: |
-        cd openwrt-sdk/package
-        git clone --depth 1 --branch main https://github.com/sbwml/luci-theme-argon.git luci-theme-argon
-
     - name: Configure build
       run: |
         cd openwrt-sdk
         make defconfig
-        # Select the package LuCI -> Applications -> luci-app-tinyfilemanager
-        # echo "CONFIG_ALL_NONSHARED=n" > .config
-        # echo "CONFIG_ALL_KMODS=n" >> .config
-        # echo "CONFIG_ALL=n" >> .config
-        # echo "CONFIG_AUTOREMOVE=n" >> .config
-        # echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
-        # echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
+
+        echo "CONFIG_ALL_NONSHARED=n" > .config
+        echo "CONFIG_ALL_KMODS=n" >> .config
+        echo "CONFIG_ALL=n" >> .config
+        echo "CONFIG_AUTOREMOVE=n" >> .config
+        echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
         echo "CONFIG_PACKAGE_python3-packages=y" >> .config
         echo 'CONFIG_PACKAGE_python3-packages-list="python-telegram-bot"' >> .config
-
-  
 
     - name: Compile python-dotmap
       run: |
@@ -73,7 +68,6 @@ jobs:
         name: luci-theme-argon
         path: |
           openwrt-sdk/bin/packages/x86_64/base/*.ipk
-          
 
     - name: Zip packages
       run: |
@@ -85,7 +79,6 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
         artifacts: |
             openwrt-sdk/bin/packages/**/python3-packages*
-            
         allowUpdates: true
         replacesArtifacts: true
         bodyFile: "release.txt"
