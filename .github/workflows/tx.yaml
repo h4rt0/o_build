@@ -53,8 +53,10 @@ jobs:
       run: |
         cd openwrt-sdk/feeds/packages/lang/python/python3-packages
         ls
-        sed -i 's/PKG_VERSION:=1.1/PKG_VERSION:=${{ env.PYTHON_TELEGRAM_BOT_VERSION }}/' openwrt-sdk/feeds/packages/lang/python/python3-packages/Makefile
-
+        sed -i 's/PKG_VERSION:=1.1/PKG_VERSION:=${{ env.PYTHON_TELEGRAM_BOT_VERSION }}/' Makefile
+      env:
+        PYTHON_TELEGRAM_BOT_VERSION: ${{ env.PYTHON_TELEGRAM_BOT_VERSION }}
+        
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
