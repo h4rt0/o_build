@@ -20,6 +20,8 @@ jobs:
       run: |
         LATEST_VERSION=$(pip index versions python-telegram-bot | grep -oP '(?<=python-telegram-bot )[\d.]+(?=\s)' | head -n 1)
         echo "PYTHON_TELEGRAM_BOT_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+        echo "Extracted version: ${{ env.PYTHON_TELEGRAM_BOT_VERSION }}"
+  
 
     - name: Setup Environment Variables
       run: |
