@@ -28,15 +28,15 @@ jobs:
 
     - name: Download OpenWrt SDK
       run: |
-        wget https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
-        tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
-        mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk
+        wget https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz > /dev/null
+        tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz > /dev/null
+        mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk > /dev/null
 
     - name: Update and install feeds
       run: |
         cd openwrt-sdk
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+        ./scripts/feeds update -a > /dev/null
+        ./scripts/feeds install -a > /dev/null
 
     - name: Configure build
       run: |
