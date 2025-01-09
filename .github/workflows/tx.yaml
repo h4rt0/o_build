@@ -15,7 +15,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y -qq build-essential libncurses5-dev pkg-config zlib1g-dev gawk git ccache gettext libssl-dev libxml2-dev xsltproc wget unzip python3 zstd
-
+    - name: Install python-telegram-bot
+      run: |
+        pip install python-telegram-bot
     - name: Get latest python-telegram-bot version
       run: |
         LATEST_VERSION=$(pip show python-telegram-bot | grep -Po '(?<=Version: )[\d.]+' | head -n 1)
