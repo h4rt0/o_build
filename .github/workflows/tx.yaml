@@ -18,11 +18,10 @@ jobs:
 
     - name: Get latest python-telegram-bot version
       run: |
-        LATEST_VERSION=$(pip index versions python-telegram-bot | grep -oP '(?<=python-telegram-bot )[\d.]+(?=\s)' | head -n 1)
+        LATEST_VERSION=$(pip show python-telegram-bot | grep -Po '(?<=Version: )[\d.]+' | head -n 1)
         echo "PYTHON_TELEGRAM_BOT_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
-        echo "Extracted version: ${{ env.PYTHON_TELEGRAM_BOT_VERSION }}"
+        echo "Extracted version: $LATEST_VERSION"
   
-
     - name: Setup Environment Variables
       run: |
         export TZ=Asia/Jakarta
@@ -30,33 +29,27 @@ jobs:
 
     - name: Download OpenWrt SDK
       run: |
-        wget -q https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz > /dev/null
-        tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz > /dev/null
-        mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk > /dev/null
+        wget -q https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+        tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+        mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk
 
     - name: Update and install feeds
       run: |
         cd openwrt-sdk
-        ./scripts/feeds update -a > /dev/null
-        ./scripts/feeds install -a > /dev/null
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
 
     - name: Configure build
       run: |
         cd openwrt-sdk
         make defconfig
 
-        # echo "CONFIG_ALL_NONSHARED=n" > .config
-        # echo "CONFIG_ALL_KMODS=n" >> .config
-        # echo "CONFIG_ALL=n" >> .config
-        # echo "CONFIG_AUTOREMOVE=n" >> .config
-        # echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
         echo "CONFIG_PACKAGE_python3-packages=y" >> .config
         echo 'CONFIG_PACKAGE_python3-packages-list="python-telegram-bot"' >> .config
 
     - name: Compile python-dotmap
       run: |
         cd openwrt-sdk
-        ls
         make package/feeds/packages/python3-packages/compile  V=s -j10
 
     - name: Rename IPK package
