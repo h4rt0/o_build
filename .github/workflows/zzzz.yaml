@@ -30,12 +30,7 @@ jobs:
         tar xf openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
         mv openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64 openwrt-sdk
         
-    - name: Update and install feeds
-      run: |
-        cd openwrt-sdk
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
-
+    
     - name: Clone sbwml/luci-theme-argon
       run: |
         cd openwrt-sdk/package
@@ -68,6 +63,11 @@ jobs:
        
       
         make defconfig
+    - name: Update and install feeds
+      run: |
+        cd openwrt-sdk
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
 
     - name: Compile luci
       run: |
