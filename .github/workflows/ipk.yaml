@@ -70,8 +70,8 @@ jobs:
         echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
         echo "CONFIG_PACKAGE_autocore-x86=y" >> .config
         echo "CONFIG_PACKAGE_luci-app-tailscale=y" >> .config
-        echo "CONFIG_PACKAGE_internet-detector-mod-email=y" >> .config
-        echo "CONFIG_PACKAGE_internet-detector-mod-modem-restart=y" >> .config
+        # echo "CONFIG_PACKAGE_internet-detector-mod-email=y" >> .config
+        # echo "CONFIG_PACKAGE_internet-detector-mod-modem-restart=y" >> .config
         echo "CONFIG_PACKAGE_luci-app-internet-detector=y" >> .config
       
         make defconfig
