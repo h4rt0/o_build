@@ -68,9 +68,6 @@ jobs:
     - name: Compile luci
       run: |
         cd openwrt-sdk
-        make package/internet-detector-mod-modem-restart/compile V=s -j10
-        make package/internet-detector-mod-email/compile V=s -j10
-        make package/luci-app-internet-detector/compile V=s -j10 
         make package/luci-theme-argon/compile V=s -j10
         make package/luci-app-argon-config/compile V=s -j10
         make package/autocore-arm/compile V=s -j10
