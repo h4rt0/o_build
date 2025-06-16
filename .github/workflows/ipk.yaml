@@ -41,7 +41,7 @@ jobs:
     - name: Clone Source
       run: |
         cd openwrt-sdk/package
-        git clone --depth 1 --branch main https://github.com/sbwml/luci-theme-argon.git luci-theme-argon
+        git clone --depth 1 --branch openwrt-24.10 https://github.com/sbwml/luci-theme-argon.git luci-theme-argon
         git clone https://github.com/sbwml/autocore-arm autocore-arm
         git clone --depth 1 --branch main https://github.com/asvow/luci-app-tailscale.git luci-app-tailscale
         
