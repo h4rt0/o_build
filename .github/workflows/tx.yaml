@@ -53,6 +53,7 @@ jobs:
       run: |
         cd openwrt-sdk/feeds/packages/lang/python/python3-packages
         ls
+        sed -i 's/PKG_NAME:=python3-packages/PKG_NAME:=python3-tele/' Makefile
         sed -i 's/PKG_VERSION:=1.0/PKG_VERSION:=${{ env.PYTHON_TELEGRAM_BOT_VERSION }}/' Makefile
         cat Makefile
       env:
