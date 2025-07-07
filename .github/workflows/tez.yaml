@@ -89,7 +89,7 @@ jobs:
       with:
         token: ${{ secrets.GH_TOKEN }}
         artifacts: |
-            openwrt-sdk/bin/packages/**/quickfile*
+            openwrt-sdk/bin/packages/**/*quickfile*
       
         allowUpdates: true
         replacesArtifacts: true
