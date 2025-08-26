@@ -1,4 +1,4 @@
-name: Build samba
+name: Build OpenWrt Packages
 
 on:
   workflow_dispatch:
@@ -33,10 +33,12 @@ jobs:
         rm -rf feeds/packages/net/samba4
         git clone https://github.com/sbwml/feeds_packages_net_samba4 feeds/packages/net/samba4
 
-    - name: Configure OpenWrt
+    - name: Prepare toolchain
       run: |
         cd openwrt
         make defconfig
+        make tools/install -j$(nproc) V=s
+        make toolchain/install -j$(nproc) V=s
 
     - name: Build packages
       run: |
