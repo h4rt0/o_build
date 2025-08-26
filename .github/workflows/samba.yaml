@@ -1,4 +1,4 @@
-name: Build OpenWrt Packages samba
+name: Build samba
 
 on:
   workflow_dispatch:
@@ -41,6 +41,7 @@ jobs:
     - name: Build packages
       run: |
         cd openwrt
+        make package/liburing/compile -j$(nproc) V=s
         make package/samba4/compile -j$(nproc) V=s
 
     - name: Upload ipk artifacts
@@ -48,6 +49,7 @@ jobs:
       with:
         name: openwrt-ipk
         path: |
+          openwrt/bin/packages/*/*/liburing*.ipk
           openwrt/bin/packages/*/*/samba4*.ipk
 
     - name: Upload to GitHub Release
@@ -58,4 +60,3 @@ jobs:
           openwrt/bin/packages/*/*/samba4*.ipk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
