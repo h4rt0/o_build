@@ -57,13 +57,18 @@ jobs:
         make package/liburing/compile -j$(nproc) V=s
         make package/samba4/compile -j$(nproc) V=s
 
+    - name: List built packages (debug)
+      run: |
+        echo "=== List of built .ipk files ==="
+        find openwrt/bin/packages -type f -name "*.ipk" -print
+
     - name: Upload ipk artifacts
       uses: actions/upload-artifact@v4
       with:
         name: openwrt-ipk
         path: |
-          openwrt/bin/packages/*/base/liburing*.ipk
-          openwrt/bin/packages/*/base/samba4*.ipk
+          openwrt/bin/packages/*/packages/liburing*.ipk
+          openwrt/bin/packages/*/packages/samba4*.ipk
         if-no-files-found: warn
 
     - name: Create GitHub Release
@@ -72,7 +77,7 @@ jobs:
         tag_name: auto-${{ github.run_number }}
         name: "OpenWrt IPK Build ${{ github.run_number }}"
         files: |
-          openwrt/bin/packages/*/base/liburing*.ipk
-          openwrt/bin/packages/*/base/samba4*.ipk
+          openwrt/bin/packages/*/packages/liburing*.ipk
+          openwrt/bin/packages/*/packages/samba4*.ipk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
