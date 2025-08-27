@@ -51,14 +51,18 @@ jobs:
       with:
         name: openwrt-ipk
         path: |
-          openwrt/bin/packages/**/liburing*.ipk
-          openwrt/bin/packages/**/*samba4*.ipk
-
-    - name: Upload to GitHub Release
+          openwrt/bin/packages/*/base/liburing*.ipk
+          openwrt/bin/packages/*/base/samba4*.ipk
+        if-no-files-found: warn
+    - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: auto-${{ github.run_number }}
+        name: "Auto Build ${{ github.run_number }}"
         files: |
-          openwrt/bin/packages/*/*/liburing*.ipk
-          openwrt/bin/packages/*/*/samba4*.ipk
+          openwrt/bin/packages/*/base/liburing*.ipk
+          openwrt/bin/packages/*/base/samba4*.ipk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+  
