@@ -62,6 +62,11 @@ jobs:
         echo "=== List of built .ipk files ==="
         find openwrt/bin/packages -type f -name "*.ipk" -print
 
+    - name: List compiled files
+      run: |
+        cd openwrt
+        find bin -name "*.ipk"
+
     - name: Upload ipk artifacts
       uses: actions/upload-artifact@v4
       with:
