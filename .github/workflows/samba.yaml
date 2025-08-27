@@ -51,8 +51,8 @@ jobs:
       with:
         name: openwrt-ipk
         path: |
-          openwrt/bin/packages/*/*/liburing*.ipk
-          openwrt/bin/packages/*/*/samba4*.ipk
+          openwrt/bin/packages/**/liburing*.ipk
+          openwrt/bin/packages/**/*samba4*.ipk
 
     - name: Upload to GitHub Release
       uses: softprops/action-gh-release@v2
