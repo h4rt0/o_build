@@ -31,7 +31,7 @@ jobs:
         git clone https://github.com/sbwml/feeds_packages_libs_liburing feeds/packages/libs/liburing
         rm -rf feeds/packages/net/samba4
         git clone https://github.com/sbwml/feeds_packages_net_samba4 feeds/packages/net/samba4
-        cat /feeds/packages/net/samba4/Makefile
+        cat feeds/packages/net/samba4/Makefile
 
     - name: Update & install feeds
       run: |
