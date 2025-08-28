@@ -87,11 +87,14 @@ jobs:
           openwrt/bin/packages/*/*/samba4*.ipk
         if-no-files-found: warn
 
-    - name: Release
-      uses: softprops/action-gh-release@v2
+    - name: Upload packages
+      uses: ncipollo/release-action@main
       with:
-        files: |
+        token: ${{ secrets.GH_TOKEN }}
+        artifacts: |
           openwrt/bin/packages/*/*/liburing*.ipk
           openwrt/bin/packages/*/*/samba4*.ipk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        allowUpdates: true
+        replacesArtifacts: true
+        bodyFile: "release.txt"
+        tag: x86_ipk
