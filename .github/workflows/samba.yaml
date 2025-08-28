@@ -86,7 +86,11 @@ jobs:
           openwrt/bin/packages/*/*/liburing*.ipk
           openwrt/bin/packages/*/*/samba4*.ipk
         if-no-files-found: warn
-
+        
+    - name: Zip packages
+      run: |
+        echo -e "samba" >> release.txt
+        
     - name: Upload packages
       uses: ncipollo/release-action@main
       with:
