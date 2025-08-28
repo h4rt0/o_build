@@ -58,13 +58,15 @@ jobs:
         echo "CONFIG_ALL=n" >> .config
         echo "CONFIG_AUTOREMOVE=n" >> .config
         echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
-        echo "CONFIG_PACKAGE_luci-app-samba4=y" >> .config
+        echo "CONFIG_PACKAGE_samba4=y" >> .config
+        echo "CONFIG_PACKAGE_samba4-server=y" >> .config
+        echo "CONFIG_PACKAGE_samba4-libs=y" >> .config
         make defconfig
 
     - name: Compile luci
       run: |
         cd openwrt-sdk
-        make package/luci-app-samba4/compile V=s -j10
+        make package/samba4/compile V=s -j10
       
         
 
