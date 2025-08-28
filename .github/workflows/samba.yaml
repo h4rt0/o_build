@@ -63,7 +63,7 @@ jobs:
         working-directory: ./openwrt
         run: |
           # Copy the default config
-          cp .config.example .config
+          # cp .config.example .config
           
           # Enable the package you want to build (and its dependencies)
           # Example: We enable luci-app-samba4 which depends on samba4
