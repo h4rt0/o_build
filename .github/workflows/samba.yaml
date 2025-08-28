@@ -1,88 +1,96 @@
-name: OpenWrt Package Build
+#
+# GitHub Actions workflow to build a custom OpenWrt IPK package
+#
+name: Build OpenWrt Package
 
+# Controls when the workflow will run
 on:
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      openwrt_version:
+        description: 'OpenWrt Version (e.g., 23.05.3)'
+        required: true
+        default: '23.05.3'
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout OpenWrt
+      # 1. Checkout your repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          repository: openwrt/openwrt
-          ref: v24.10.2
-          path: openwrt
 
-      - name: Install dependencies
+      # 2. Install build dependencies for OpenWrt
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential ccache git wget python3 unzip \
-            libncurses5-dev zlib1g-dev gawk flex gettext libssl-dev xsltproc rsync
+          sudo apt-get install -y build-essential clang flex bison g++ gawk \
+          gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
+          python3-distutils rsync subversion swig time unzip wget zlib1g-dev \
+          file
 
-      - name: Setup ccache
+      # 3. Clone the specified OpenWrt source code
+      - name: Clone OpenWrt source
         run: |
-          echo 'export PATH="/usr/lib/ccache:$PATH"' >> $GITHUB_ENV
-          echo 'export CCACHE_DIR="$HOME/.ccache"' >> $GITHUB_ENV
-          echo 'export CCACHE_COMPRESS=1' >> $GITHUB_ENV
-          echo 'export CCACHE_MAXSIZE=2G' >> $GITHUB_ENV
+          # Use a shallow clone (--depth 1) for speed
+          git clone --depth 1 -b v${{ github.event.inputs.openwrt_version }} https://github.com/openwrt/openwrt.git
 
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-x86-${{ github.ref }}
-          restore-keys: |
-            ccache-${{ runner.os }}-x86-
-
-      - name: Cache toolchain
-        uses: actions/cache@v4
-        with:
-          path: |
-            openwrt/staging_dir
-            openwrt/build_dir/toolchain*
-            openwrt/tmp
-          key: toolchain-${{ runner.os }}-x86-${{ github.ref }}
-          restore-keys: |
-            toolchain-${{ runner.os }}-x86-
-
-      - name: Update feeds
+      # 4. Update feeds and apply your custom package sources
+      - name: Update feeds and apply custom sources
+        working-directory: ./openwrt
         run: |
-          cd openwrt
+          # Update the package feeds
           ./scripts/feeds update -a
-          ./scripts/feeds install -a
-
-      - name: Replace liburing & samba4
-        run: |
-          cd openwrt
+          
+          # --- YOUR CUSTOMIZATIONS START HERE ---
+          # Remove the default liburing and samba4 to replace them
+          echo "Replacing stock liburing and samba4..."
           rm -rf feeds/packages/libs/liburing
           git clone https://github.com/sbwml/feeds_packages_libs_liburing feeds/packages/libs/liburing
+          
           rm -rf feeds/packages/net/samba4
           git clone https://github.com/sbwml/feeds_packages_net_samba4 feeds/packages/net/samba4
+          # --- YOUR CUSTOMIZATIONS END HERE ---
 
-      - name: Build toolchain
-        run: |
-          cd openwrt
-          make toolchain/install -j$(nproc) V=s
+          # Install all feed packages
+          ./scripts/feeds install -a
 
-      - name: Build packages
+      # 5. Configure the build for a specific package
+      - name: Configure build
+        working-directory: ./openwrt
         run: |
-          cd openwrt
-          make package/feeds/packages/liburing/compile -j$(nproc) V=s
+          # Copy the default config
+          cp .config.example .config
+          
+          # Enable the package you want to build (and its dependencies)
+          # Example: We enable luci-app-samba4 which depends on samba4
+          echo "CONFIG_PACKAGE_luci-app-samba4=y" >> .config
+          
+          # Apply the configuration and resolve dependencies
+          make defconfig
+
+      # 6. Build the package
+      - name: Build the package
+        working-directory: ./openwrt
+        run: |
+          # Use -j to speed up the build, V=s for verbose output
+          # The path is package/feeds/<feed_name>/<package_name>
           make package/feeds/packages/samba4/compile -j$(nproc) V=s
 
-      - name: Debug - List built IPKs
+      # 7. Prepare artifacts for upload
+      - name: Prepare artifacts
         run: |
-          echo "=== List of built .ipk files ==="
-          find openwrt/bin/packages/ -type f -name "*.ipk" | sort
+          # Create a directory to store the IPK files
+          mkdir -p artifacts
+          # Find all .ipk files in the bin directory and copy them to the artifacts folder
+          find openwrt/bin/packages -name "*.ipk" -exec cp {} artifacts/ \;
 
-      - name: Upload artifacts
+      # 8. Upload the compiled IPK files
+      - name: Upload IPK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: openwrt-ipk
-          path: |
-            openwrt/bin/packages/*/packages/liburing*.ipk
-            openwrt/bin/packages/*/packages/samba4*.ipk
-          if-no-files-found: warn
-          compression-level: 6
+          name: openwrt-ipks-${{ github.event.inputs.openwrt_version }}
+          path: artifacts/
