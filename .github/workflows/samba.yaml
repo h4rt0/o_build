@@ -1,4 +1,4 @@
-name: Build luci-ipk
+name: Build samba-ipk
 
 on:
   workflow_dispatch:
