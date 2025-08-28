@@ -1,23 +1,40 @@
-name: Build OpenWrt ipk
+name: OpenWrt Package Build
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Checkout OpenWrt
         uses: actions/checkout@v4
+        with:
+          repository: openwrt/openwrt
+          ref: v24.10.2
+          path: openwrt
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y build-essential ccache gcc g++ make unzip wget rsync python3
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache git wget python3 unzip \
+            libncurses5-dev zlib1g-dev gawk flex gettext libssl-dev xsltproc rsync
+
+      - name: Setup ccache
+        run: |
+          echo 'export PATH="/usr/lib/ccache:$PATH"' >> $GITHUB_ENV
+          echo 'export CCACHE_DIR="$HOME/.ccache"' >> $GITHUB_ENV
+          echo 'export CCACHE_COMPRESS=1' >> $GITHUB_ENV
+          echo 'export CCACHE_MAXSIZE=2G' >> $GITHUB_ENV
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-x86-${{ github.ref }}
+          restore-keys: |
+            ccache-${{ runner.os }}-x86-
 
       - name: Cache toolchain
         uses: actions/cache@v4
@@ -26,52 +43,39 @@ jobs:
             openwrt/staging_dir
             openwrt/build_dir/toolchain*
             openwrt/tmp
-          key: toolchain-x86-${{ github.ref }}
-          restore-keys: toolchain-x86-
+          key: toolchain-${{ runner.os }}-x86-${{ github.ref }}
+          restore-keys: |
+            toolchain-${{ runner.os }}-x86-
 
-      - name: Clone OpenWrt
+      - name: Update feeds
         run: |
-          git clone https://github.com/openwrt/openwrt -b v24.10.2 openwrt
           cd openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Replace samba4 & liburing
+      - name: Replace liburing & samba4
         run: |
           cd openwrt
           rm -rf feeds/packages/libs/liburing
           git clone https://github.com/sbwml/feeds_packages_libs_liburing feeds/packages/libs/liburing
           rm -rf feeds/packages/net/samba4
           git clone https://github.com/sbwml/feeds_packages_net_samba4 feeds/packages/net/samba4
-          ./scripts/feeds update -i
-          ./scripts/feeds install -a
-          echo "=== Check samba4 Makefile source ==="
-          grep PKG_SOURCE_URL package/feeds/packages/samba4/Makefile || true
 
-      - name: Configure target
+      - name: Build toolchain
         run: |
           cd openwrt
-          echo "CONFIG_TARGET_x86=y" > .config
-          echo "CONFIG_TARGET_x86_64=y" >> .config
-          echo "CONFIG_PACKAGE_liburing=y" >> .config
-          echo "CONFIG_PACKAGE_samba4-server=y" >> .config
-          make defconfig
+          make toolchain/install -j$(nproc) V=s
 
-      - name: Enable ccache
+      - name: Build packages
         run: |
           cd openwrt
-          echo "CONFIG_CCACHE=y" >> .config
+          make package/feeds/packages/liburing/compile -j$(nproc) V=s
+          make package/feeds/packages/samba4/compile -j$(nproc) V=s
 
-      - name: Build ipk
-        run: |
-          cd openwrt
-          make package/liburing/compile V=s -j$(nproc)
-          make package/samba4/compile V=s -j$(nproc)
-
-      - name: Debug built ipk
+      - name: Debug - List built IPKs
         run: |
           echo "=== List of built .ipk files ==="
-          find openwrt/bin/packages -type f -name "*.ipk" -print || true
+          find openwrt/bin/packages/ -type f -name "*.ipk" | sort
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -81,19 +85,4 @@ jobs:
             openwrt/bin/packages/*/packages/liburing*.ipk
             openwrt/bin/packages/*/packages/samba4*.ipk
           if-no-files-found: warn
-  
-      - name: Zip packages
-        run: |
-         echo -e "samba" >> release.txt
-        
-      - name: Upload packages
-        uses: ncipollo/release-action@main
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          artifacts: |
-            openwrt/bin/packages/*/*/liburing*.ipk
-            openwrt/bin/packages/*/*/samba4*.ipk
-          allowUpdates: true
-          replacesArtifacts: true
-          bodyFile: "release.txt"
-          tag: x86_ipk
+          compression-level: 6
