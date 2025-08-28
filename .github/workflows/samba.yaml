@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential clang flex bison g++ gawk \
           gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
-          python3-distutils rsync subversion swig time unzip wget zlib1g-dev \
+          python3 rsync subversion swig time unzip wget zlib1g-dev \
           file
 
       # 3. Clone the specified OpenWrt source code
