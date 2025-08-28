@@ -45,7 +45,10 @@ jobs:
         CONFIG_TARGET_x86=y
         CONFIG_TARGET_x86_64=y
         CONFIG_TARGET_x86_64_Generic=y
+        CONFIG_PACKAGE_liburing=y
+        CONFIG_PACKAGE_samba4-server=y
         EOF
+        
         make defconfig
 
     - name: Cache toolchain
