@@ -31,13 +31,12 @@ jobs:
         git clone https://github.com/sbwml/feeds_packages_libs_liburing feeds/packages/libs/liburing
         rm -rf feeds/packages/net/samba4
         git clone https://github.com/sbwml/feeds_packages_net_samba4 feeds/packages/net/samba4
+        ./scripts/feeds update -i
+        ./scripts/feeds install -a
+        grep PKG_SOURCE_URL package/feeds/packages/samba4/Makefile || true
         cat feeds/packages/net/samba4/Makefile
 
-    - name: Update & install feeds
-      run: |
-        cd openwrt
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+
 
     - name: Configure target (x86_64)
       run: |
