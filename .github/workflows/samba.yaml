@@ -64,6 +64,11 @@ jobs:
       run: |
         cd openwrt-sdk
         grep PKG_VERSION package/network/services/samba4/Makefile
+        
+    - name: Check Samba 
+      run: |
+        cd openwrt-sdk
+        find dl -name "*samba*"
 
     - name: Compile samba
       run: |
