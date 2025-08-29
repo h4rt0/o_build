@@ -46,7 +46,7 @@ jobs:
 
         cd ..
         ./scripts/feeds install -a
-        make package/index
+        
 
     - name: Configure build
       run: |
