@@ -35,18 +35,13 @@ jobs:
 
     - name: Override Samba & Liburing with sbwml repo
       run: |
-        cd openwrt-sdk/package
-        # hapus bawaan liburing & samba4
-        rm -rf libs/liburing
-        rm -rf network/services/samba4
-
-        # clone dari repo sbwml
-        git clone https://github.com/sbwml/feeds_packages_libs_liburing libs/liburing
-        git clone https://github.com/sbwml/feeds_packages_net_samba4 network/services/samba4
-
-        cd ..
+        cd openwrt-sdk
+        rm -rf feeds/packages/libs/liburing
+        rm -rf feeds/packages/net/samba4
+        git clone https://github.com/sbwml/feeds_packages_libs_liburing feeds/packages/libs/liburing
+        git clone https://github.com/sbwml/feeds_packages_net_samba4 feeds/packages/net/samba4
+        ./scripts/feeds update -i
         ./scripts/feeds install -a
-        
 
     - name: Configure build
       run: |
@@ -55,7 +50,6 @@ jobs:
         echo "CONFIG_ALL_KMODS=n" >> .config
         echo "CONFIG_ALL=n" >> .config
         echo "CONFIG_AUTOREMOVE=n" >> .config
-        echo "CONFIG_PACKAGE_samba4=y" >> .config
         echo "CONFIG_PACKAGE_samba4-server=y" >> .config
         echo "CONFIG_PACKAGE_samba4-libs=y" >> .config
         echo "CONFIG_SAMBA4_SERVER_AVAHI=y" >> .config
@@ -67,17 +61,12 @@ jobs:
     - name: Check Samba version
       run: |
         cd openwrt-sdk
-        grep PKG_VERSION package/network/services/samba4/Makefile
-        
-    - name: Check Samba 
-      run: |
-        cd openwrt-sdk
-        find dl -name "*samba*"
+        grep PKG_VERSION feeds/packages/net/samba4/Makefile
 
     - name: Compile samba
       run: |
         cd openwrt-sdk
-        make package/samba4/compile V=s -j$(nproc)
+        make package/samba4-server/compile V=s -j$(nproc)
 
     - name: List compiled files
       run: |
@@ -91,17 +80,4 @@ jobs:
         path: |
           openwrt-sdk/bin/packages/**/*samba*.ipk
 
-    - name: Zip packages
-      run: |
-        echo -e "Build samba4 from sbwml repo" > release.txt
-
-    - name: Upload packages to Release
-      uses: ncipollo/release-action@main
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        artifacts: |
-          openwrt-sdk/bin/packages/**/*samba*.ipk
-        allowUpdates: true
-        replacesArtifacts: true
-        bodyFile: "release.txt"
-        tag: x86_ipk
+  
