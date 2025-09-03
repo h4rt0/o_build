@@ -79,5 +79,20 @@ jobs:
         name: samba4-ipk
         path: |
           openwrt-sdk/bin/packages/**/*samba*.ipk
+  
+    - name: Zip packages
+      run: |
+        echo -e "samba" >> release.txt
+
+    - name: Upload packages
+      uses: ncipollo/release-action@main
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        artifacts: |
+            openwrt-sdk/bin/packages/**/*samba*.ipk
+        allowUpdates: true
+        replacesArtifacts: true
+        bodyFile: "release.txt"
+        tag: x86_ipk
 
   
