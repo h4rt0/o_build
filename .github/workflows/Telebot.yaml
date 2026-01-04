@@ -6,10 +6,10 @@ on:
       openwrt_version:
         description: "OpenWrt version"
         required: true
-        default: "23.05.3"
+        default: "23.05.5"
         type: choice
         options:
-          - 23.05.3
+          - 23.05.5
           - snapshot
       arch:
         description: "Target architecture"
