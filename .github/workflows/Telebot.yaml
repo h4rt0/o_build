@@ -48,8 +48,8 @@ jobs:
             wget "$SDK_URL/$SDK_FILE"
           else
             SDK_FILE="openwrt-sdk-${{ inputs.openwrt_version }}-${{ inputs.arch }}_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
-            wget "https://downloads.openwrt.org/releases/${{ inputs.openwrt_version }}/targets/${{ inputs.arch }}/$SDK_FILE"
-          fi
+            wget https://downloads.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+            fi
           tar -xf $SDK_FILE
           mv openwrt-sdk-* openwrt-sdk
 
