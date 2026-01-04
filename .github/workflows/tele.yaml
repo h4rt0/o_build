@@ -1,0 +1,95 @@
+name: Build python-telegram-bot (APK)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq \
+          build-essential libncurses5-dev pkg-config zlib1g-dev \
+          gawk git ccache gettext libssl-dev libxml2-dev \
+          xsltproc wget unzip python3 python3-pip zstd
+
+    - name: Install python-telegram-bot (get version)
+      run: |
+        pip install python-telegram-bot
+        VERSION=$(pip show python-telegram-bot | awk '/Version:/ {print $2}')
+        echo "PYTHON_TELEGRAM_BOT_VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Detected version: $VERSION"
+
+    - name: Set timezone & date
+      run: |
+        echo "TZ=Asia/Jakarta" >> $GITHUB_ENV
+        echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+    - name: Download OpenWrt SDK 25.12.0-rc1 (APK)
+      run: |
+        wget -q https://downloads.openwrt.org/releases/25.12.0-rc1/targets/x86/64/openwrt-sdk-25.12.0-rc1-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+        tar --use-compress-program=unzstd -xf openwrt-sdk-25.12.0-rc1-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+        mv openwrt-sdk-25.12.0-rc1-x86-64_gcc-14.3.0_musl.Linux-x86_64 openwrt-sdk
+
+    - name: Update & install feeds
+      run: |
+        cd openwrt-sdk
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Configure build (APK)
+      run: |
+        cd openwrt-sdk
+        make defconfig
+
+        echo "CONFIG_PACKAGE_python3-packages=y" >> .config
+        echo 'CONFIG_PACKAGE_python3-packages-list="python-telegram-bot"' >> .config
+        echo "BUILD_APK=y" >> .config
+
+        make defconfig
+
+    - name: Update PKG_VERSION in python3-packages
+      run: |
+        cd openwrt-sdk/feeds/packages/lang/python/python3-packages
+        sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${PYTHON_TELEGRAM_BOT_VERSION}/" Makefile
+        grep PKG_VERSION Makefile
+
+    - name: Compile python-telegram-bot (APK)
+      run: |
+        cd openwrt-sdk
+        make package/feeds/packages/python3-packages/compile -j$(nproc) V=s
+
+    - name: List generated APK files
+      run: |
+        cd openwrt-sdk
+        find bin -name "*.apk"
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-telegram-bot-apk
+        path: |
+          openwrt-sdk/bin/packages/**/python3-packages_*.apk
+
+    - name: Prepare release notes
+      run: |
+        echo "python-telegram-bot ${PYTHON_TELEGRAM_BOT_VERSION}" > release.txt
+        echo "OpenWrt 25.12.0-rc1 (APK)" >> release.txt
+        echo "Build date: ${DATE}" >> release.txt
+
+    - name: Upload APK to GitHub Release
+      uses: ncipollo/release-action@main
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        artifacts: |
+          openwrt-sdk/bin/packages/**/python3-packages_*.apk
+        allowUpdates: true
+        replacesArtifacts: true
+        bodyFile: release.txt
+        tag: x86_apk
