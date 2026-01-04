@@ -1,0 +1,77 @@
+name: Build python-telegram-bot OpenWrt IPK
+
+on:
+  workflow_dispatch:
+    inputs:
+      openwrt_version:
+        description: "OpenWrt version"
+        required: true
+        default: "23.05.3"
+        type: choice
+        options:
+          - 23.05.3
+          - snapshot
+      arch:
+        description: "Target architecture"
+        required: true
+        default: "x86_64"
+        type: choice
+        options:
+          - x86_64
+          - aarch64_cortex-a53
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      PKG_NAME: python3-telegram-bot
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            build-essential clang flex bison g++ gawk \
+            gettext git libncurses-dev libssl-dev \
+            python3 python3-distutils rsync unzip zlib1g-dev file wget
+
+      - name: Download OpenWrt SDK
+        run: |
+          set -e
+          if [ "${{ inputs.openwrt_version }}" = "snapshot" ]; then
+            SDK_URL="https://downloads.openwrt.org/snapshots/targets/${{ inputs.arch }}/sdk/"
+            SDK_FILE=$(curl -s $SDK_URL | grep -o 'openwrt-sdk-.*\.tar\.xz' | head -n1)
+            wget "$SDK_URL/$SDK_FILE"
+          else
+            SDK_FILE="openwrt-sdk-${{ inputs.openwrt_version }}-${{ inputs.arch }}_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
+            wget "https://downloads.openwrt.org/releases/${{ inputs.openwrt_version }}/targets/${{ inputs.arch }}/$SDK_FILE"
+          fi
+          tar -xf $SDK_FILE
+          mv openwrt-sdk-* openwrt-sdk
+
+      - name: Copy package to SDK
+        run: |
+          cp -r package/* openwrt-sdk/package/
+
+      - name: Update & install feeds
+        working-directory: openwrt-sdk
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Build package
+        working-directory: openwrt-sdk
+        run: |
+          make defconfig
+          make package/${{ env.PKG_NAME }}/clean
+          make package/${{ env.PKG_NAME }}/compile V=s
+
+      - name: Upload IPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG_NAME }}-${{ inputs.openwrt_version }}-${{ inputs.arch }}
+          path: openwrt-sdk/bin/packages/**/*.ipk
