@@ -1,31 +1,18 @@
-name: aBuild python-telegram-bot OpenWrt IPK
+name: a python3-telegram-bot OpenWrt 23.05.5
 
 on:
   workflow_dispatch:
-    inputs:
-      openwrt_version:
-        description: "OpenWrt version"
-        required: true
-        default: "23.05.5"
-        type: choice
-        options:
-          - 23.05.5
-          - snapshot
-      arch:
-        description: "Target architecture"
-        required: true
-        default: "x86_64"
-        type: choice
-        options:
-          - x86_64
-          - aarch64_cortex-a53
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     env:
-      PKG_NAME: python3-telegram-bot
+      SDK_VERSION: "23.05.5"
+      TARGET: "x86/64"
+      ARCH: "x86_64"
+      SDK_FILE: "openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
+      PKG_NAME: "python3-telegram-bot"
 
     steps:
       - name: Checkout repository
@@ -37,23 +24,24 @@ jobs:
           sudo apt-get install -y -qq \
             build-essential clang flex bison g++ gawk \
             gettext git libncurses-dev libssl-dev \
-            python3 python3-setuptools python3-venv rsync unzip zlib1g-dev file wget
+            python3 python3-setuptools python3-venv \
+            rsync unzip zlib1g-dev file wget curl aria2
 
-      - name: Download OpenWrt SDK
+      - name: Download OpenWrt SDK (FAST with mirror)
         run: |
           set -e
-          if [ "${{ inputs.openwrt_version }}" = "snapshot" ]; then
-            SDK_URL="https://downloads.openwrt.org/snapshots/targets/${{ inputs.arch }}/sdk/"
-            SDK_FILE=$(curl -s $SDK_URL | grep -o 'openwrt-sdk-.*\.tar\.xz' | head -n1)
-            wget "$SDK_URL/$SDK_FILE"
-          else
-            SDK_FILE="openwrt-sdk-${{ inputs.openwrt_version }}-${{ inputs.arch }}_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
-            wget https://mirror-03.infra.openwrt.org/releases/23.05.5/targets/x86/64/openwrt-sdk-23.05.5-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
-            fi
-          tar -xf $SDK_FILE
+          echo "Downloading SDK using aria2 + mirrors"
+
+          aria2c -x16 -s16 -k1M \
+            https://downloads.openwrt.org/releases/${SDK_VERSION}/targets/${TARGET}/${SDK_FILE} \
+            https://openwrt.c3sl.ufpr.br/releases/${SDK_VERSION}/targets/${TARGET}/${SDK_FILE} \
+            https://mirror.hoster.kz/openwrt/releases/${SDK_VERSION}/targets/${TARGET}/${SDK_FILE} \
+            https://mirror-03.infra.openwrt.org/releases/${SDK_VERSION}/targets/${TARGET}/${SDK_FILE}
+
+          tar -xf ${SDK_FILE}
           mv openwrt-sdk-* openwrt-sdk
 
-      - name: Copy package to SDK
+      - name: Copy custom package into SDK
         run: |
           cp -r package/* openwrt-sdk/package/
 
@@ -63,15 +51,15 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Build package
+      - name: Build python3-telegram-bot package
         working-directory: openwrt-sdk
         run: |
           make defconfig
-          make package/${{ env.PKG_NAME }}/clean
-          make package/${{ env.PKG_NAME }}/compile V=s
+          make package/${PKG_NAME}/clean
+          make package/${PKG_NAME}/compile V=s
 
       - name: Upload IPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PKG_NAME }}-${{ inputs.openwrt_version }}-${{ inputs.arch }}
+          name: ${PKG_NAME}-openwrt-${SDK_VERSION}-${ARCH}
           path: openwrt-sdk/bin/packages/**/*.ipk
