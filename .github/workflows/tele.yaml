@@ -75,7 +75,7 @@ jobs:
       with:
         name: python-telegram-bot-apk
         path: |
-          openwrt-sdk/bin/packages/**/python3-packages_*.apk
+          openwrt-sdk/bin/packages/**/python3-packages-*.apk
 
     - name: Prepare release notes
       run: |
@@ -88,7 +88,7 @@ jobs:
       with:
         token: ${{ secrets.GH_TOKEN }}
         artifacts: |
-          openwrt-sdk/bin/packages/**/python3-packages_*.apk
+          openwrt-sdk/bin/packages/**/python3-packages-*.apk
         allowUpdates: true
         replacesArtifacts: true
         bodyFile: release.txt
