@@ -1,4 +1,4 @@
-name: Build python-telegram-bot OpenWrt IPK
+name: aBuild python-telegram-bot OpenWrt IPK
 
 on:
   workflow_dispatch:
@@ -37,7 +37,7 @@ jobs:
           sudo apt-get install -y -qq \
             build-essential clang flex bison g++ gawk \
             gettext git libncurses-dev libssl-dev \
-            python3 python3-distutils rsync unzip zlib1g-dev file wget
+            python3 python3-setuptools python3-venv rsync unzip zlib1g-dev file wget
 
       - name: Download OpenWrt SDK
         run: |
