@@ -7,11 +7,9 @@ PKG_RELEASE:=1
 PYPI_NAME:=python-telegram-bot
 PKG_HASH:=skip
 
-PKG_MAINTAINER:=Your Name <you@example.com>
 PKG_LICENSE:=LGPL-3.0
-PKG_LICENSE_FILES:=LICENSE
+PKG_MAINTAINER:=You <you@example.com>
 
-PKG_BUILD_DEPENDS:=python3 python3-setuptools-scm
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PYPI_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
@@ -25,7 +23,6 @@ define Package/python3-telegram-bot
   URL:=https://python-telegram-bot.org/
   DEPENDS:= \
     +python3 \
-    +python3-asyncio \
     +python3-logging \
     +python3-ssl \
     +python3-urllib \
@@ -38,11 +35,12 @@ define Package/python3-telegram-bot
 endef
 
 define Package/python3-telegram-bot/description
- A modern, fully asynchronous Python framework for building Telegram bots.
+ Modern, fully asynchronous Python framework for Telegram Bot API.
 endef
 
-define Build/Prepare
-	$(call Build/Prepare/Default)
+# ====== PENTING: FIX CLEAN TARGET ======
+define Build/Clean
+	rm -rf $(PKG_BUILD_DIR)
 endef
 
 define Build/Compile
